@@ -37,6 +37,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import {
   Table,
@@ -1032,7 +1033,7 @@ export function MbcApp({
                 </CardHeader>
                 <CardContent>
                   <div className="min-h-8 break-words text-xl font-extrabold tracking-normal text-[#001a41] sm:text-2xl">
-                    {item.value}
+                    {busy ? <Skeleton className="h-8 w-24 rounded-full" /> : item.value}
                   </div>
                 </CardContent>
               </Card>
@@ -1215,7 +1216,8 @@ export function MbcApp({
               <CardContent>
                 <Textarea
                   readOnly
-                  value={securePayload || text.noCardPayload}
+                  value={busy ? "" : securePayload || text.noCardPayload}
+                  placeholder={busy ? text.readingCard : undefined}
                   className="min-h-80 resize-none rounded-[18px] bg-white font-mono text-xs"
                 />
               </CardContent>
@@ -1301,7 +1303,11 @@ export function MbcApp({
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <InfoTile label={text.entryTime} value={formatDateTime(card?.checkInTimestamp ?? 0)} />
+                  <InfoTile
+                    label={text.entryTime}
+                    value={formatDateTime(card?.checkInTimestamp ?? 0)}
+                    loading={busy}
+                  />
                   <InfoTile label={text.tariff} value="Rp2.000 / jam" />
                 </div>
                 <Button
@@ -1360,13 +1366,21 @@ export function MbcApp({
                   <SmartphoneNfc className="h-4 w-4" />
                   {physicalNfc ? text.readPhysicalCard : text.readSimulatedCard}
                 </Button>
-                <InfoTile label={text.memberId} value={card?.memberId ?? "-"} />
-                <InfoTile label={text.name} value={card?.name ?? "-"} />
-                <InfoTile label={text.balance} value={card ? formatCurrency(card.balance) : "-"} />
-                <InfoTile label={text.lastUpdated} value={formatDateTime(card?.lastUpdatedAt ?? 0)} />
+                <InfoTile label={text.memberId} value={card?.memberId ?? "-"} loading={busy} />
+                <InfoTile label={text.name} value={card?.name ?? "-"} loading={busy} />
+                <InfoTile
+                  label={text.balance}
+                  value={card ? formatCurrency(card.balance) : "-"}
+                  loading={busy}
+                />
+                <InfoTile
+                  label={text.lastUpdated}
+                  value={formatDateTime(card?.lastUpdatedAt ?? 0)}
+                  loading={busy}
+                />
               </CardContent>
             </Card>
-            <TransactionTable card={card} locale={locale} />
+            <TransactionTable card={card} locale={locale} loading={busy} />
           </TabsContent>
           ) : null}
         </Tabs>
@@ -1564,11 +1578,23 @@ function FeedbackGlyph({ tone }: { tone: Feedback["tone"] }) {
   return <Info className="h-4 w-4" />;
 }
 
-function InfoTile({ label, value }: { label: string; value: string }) {
+function InfoTile({
+  label,
+  value,
+  loading = false,
+}: {
+  label: string;
+  value: string;
+  loading?: boolean;
+}) {
   return (
     <div className="rounded-[18px] border border-slate-200 bg-white p-5">
       <p className="text-xs font-bold uppercase text-slate-500">{label}</p>
-      <p className="mt-2 break-words text-base font-extrabold text-[#001a41]">{value}</p>
+      {loading ? (
+        <Skeleton className="mt-3 h-5 w-32 rounded-full" />
+      ) : (
+        <p className="mt-2 break-words text-base font-extrabold text-[#001a41]">{value}</p>
+      )}
     </div>
   );
 }
@@ -1603,9 +1629,11 @@ function ModeNotes({
 function TransactionTable({
   card,
   locale,
+  loading = false,
 }: {
   card: PlainCardData | null;
   locale: AppLocale;
+  loading?: boolean;
 }) {
   const text = uiText[locale];
 
@@ -1626,7 +1654,24 @@ function TransactionTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {card?.logs.length ? (
+            {loading ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <TableRow key={`transaction-skeleton-${index}`}>
+                  <TableCell>
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-24 rounded-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-28 rounded-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-36 rounded-full" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : card?.logs.length ? (
               card.logs.map((log) => (
                 <TableRow key={`${log.type}-${log.timestamp}`}>
                   <TableCell className="font-medium">{log.type}</TableCell>
