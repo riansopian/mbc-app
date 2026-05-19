@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Membership Benefit Card
 
-## Getting Started
+Next.js single frontend application untuk simulasi kartu NFC offline-first anggota koperasi desa, berdasarkan `prd_mermbership_benefit_card.md`.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- Web NFC API untuk kartu NFC fisik
+- localStorage sebagai fallback simulated NFC card memory
+
+## Fitur
+
+- The Station: registrasi kartu, top-up saldo, reset status.
+- The Gate: check-in, validasi double tap-in, simulation timestamp.
+- The Terminal: check-out, tarif Rp2.000 per jam dengan pembulatan ke atas, validasi saldo.
+- The Scout: mode read-only untuk membaca kartu fisik/simulasi dan melihat saldo, status, dan 5 transaksi terakhir.
+- Silent Shield: payload kartu disimpan dengan AES dan checksum.
+- Offline shell: manifest + service worker untuk cache dasar halaman aplikasi.
+
+## NFC Fisik
+
+Implementasi kartu fisik ada di `src/lib/mbc/web-nfc.ts` melalui `WebNfcCardRepository`.
+
+- Browser yang didukung: Chrome Android dengan NFC aktif.
+- Context yang dibutuhkan: HTTPS atau `localhost`.
+- Kartu yang digunakan harus mendukung NDEF write/read.
+- Payload ditulis sebagai NDEF MIME record `application/vnd.mbc.card+json`.
+- Untuk operasi mutasi seperti top-up, check-in, dan check-out, tahan kartu di area NFC sampai proses read dan write selesai.
+- Untuk kartu yang mengekspos serial number, app akan menolak write jika kartu yang ditempel berbeda dari kartu yang baru dibaca.
+
+## Prinsip SOLID
+
+- Single Responsibility: UI berada di `src/components/mbc-app.tsx`; aturan bisnis di `src/lib/mbc/service.ts`; keamanan di `security.ts`; tarif di `tariff.ts`; persistence di `repository.ts`.
+- Open/Closed: tarif dan codec dapat diganti dengan implementasi baru tanpa mengubah `MembershipCardService`.
+- Liskov Substitution: service bergantung ke kontrak `CardRepository`, `CardCodec`, `Clock`, dan `TariffPolicy`.
+- Interface Segregation: interface kecil dan spesifik untuk repository, codec, clock, dan tariff.
+- Dependency Inversion: use-case service menerima dependency lewat constructor, bukan membuat langsung dependency concrete.
+
+## Asumsi
+
+- Jika Web NFC tidak tersedia, aplikasi otomatis tetap dapat diuji dengan `LocalNfcCardRepository`.
+- Silent Shield memakai AES via `crypto-js` + checksum. Untuk produksi, gunakan manajemen key yang aman dan rotasi key.
+- Tidak ada cloud sync atau database terpusat sesuai scope PRD.
+- Role access masih sesi lokal/offline sesuai demo. Untuk produksi, autentikasi petugas perlu proses provisioning terpisah.
+
+## Menjalankan
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+## Test
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run test
+```

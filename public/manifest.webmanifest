@@ -1,0 +1,10 @@
+{
+  "name": "Membership Benefit Card",
+  "short_name": "MBC",
+  "description": "Offline-first NFC membership benefit card app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff6f7",
+  "theme_color": "#ed1b2f",
+  "icons": []
+}
