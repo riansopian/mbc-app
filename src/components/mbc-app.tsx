@@ -194,11 +194,15 @@ const uiText = {
     adminTitle: "Admin Koperasi",
     adminDescription: "Daftarkan kartu baru, isi saldo, dan reset status kunjungan.",
     memberId: "ID Anggota",
+    memberIdPlaceholder: "MBC001",
     name: "Nama",
+    namePlaceholder: "Anggota Koperasi",
     initialBalance: "Saldo awal",
+    initialBalancePlaceholder: "50000",
     savePhysicalCard: "Simpan ke kartu NFC",
     saveSimulatedCard: "Simpan kartu simulasi",
     topUpBalance: "Isi saldo",
+    topUpPlaceholder: "25000",
     resetOut: "Reset status keluar",
     encryptedData: "Data terenkripsi",
     encryptedDescription: "Data yang tersimpan di kartu tidak dapat dibaca langsung.",
@@ -326,11 +330,15 @@ const uiText = {
     adminTitle: "Cooperative Admin",
     adminDescription: "Register a new card, add balance, and reset visit status.",
     memberId: "Member ID",
+    memberIdPlaceholder: "MBC001",
     name: "Name",
+    namePlaceholder: "Cooperative Member",
     initialBalance: "Initial balance",
+    initialBalancePlaceholder: "50000",
     savePhysicalCard: "Save to NFC card",
     saveSimulatedCard: "Save simulated card",
     topUpBalance: "Add balance",
+    topUpPlaceholder: "25000",
     resetOut: "Reset to checked out",
     encryptedData: "Encrypted data",
     encryptedDescription: "Card data is stored in encrypted form.",
@@ -460,6 +468,10 @@ function buildModeHref(role: UserRole | null, physical: boolean) {
 }
 
 const quickTopUps = [10000, 25000, 50000];
+
+function parseAmountInput(value: string) {
+  return value.trim() ? Number(value) : Number.NaN;
+}
 
 class DraftCardRepository implements CardRepository {
   constructor(private card: PlainCardData | null) {}
@@ -633,10 +645,10 @@ export function MbcApp({
     parseRoleValue(initialRole),
   );
   const [card, setCard] = useState<PlainCardData | null>(null);
-  const [memberId, setMemberId] = useState("MBC001");
-  const [name, setName] = useState("Anggota Koperasi");
-  const [initialBalance, setInitialBalance] = useState(50000);
-  const [topUpAmount, setTopUpAmount] = useState(25000);
+  const [memberId, setMemberId] = useState("");
+  const [name, setName] = useState("");
+  const [initialBalance, setInitialBalance] = useState("");
+  const [topUpAmount, setTopUpAmount] = useState("");
   const [locale, setLocale] = useState<AppLocale>("id");
   const [physicalNfc, setPhysicalNfc] = useState(false);
   const [webNfcSupported, setWebNfcSupported] = useState(false);
@@ -1276,6 +1288,7 @@ export function MbcApp({
                     <Input
                       id="member-id"
                       value={memberId}
+                      placeholder={text.memberIdPlaceholder}
                       onChange={(event) => setMemberId(event.target.value)}
                     />
                   </div>
@@ -1284,6 +1297,7 @@ export function MbcApp({
                     <Input
                       id="member-name"
                       value={name}
+                      placeholder={text.namePlaceholder}
                       onChange={(event) => setName(event.target.value)}
                     />
                   </div>
@@ -1294,7 +1308,8 @@ export function MbcApp({
                       type="number"
                       min={0}
                       value={initialBalance}
-                      onChange={(event) => setInitialBalance(Number(event.target.value))}
+                      placeholder={text.initialBalancePlaceholder}
+                      onChange={(event) => setInitialBalance(event.target.value)}
                     />
                   </div>
                 </div>
@@ -1303,7 +1318,7 @@ export function MbcApp({
                   disabled={busy}
                   onClick={() =>
                     handleOperation(() =>
-                      service.register(memberId, name, Number(initialBalance)),
+                      service.register(memberId, name, parseAmountInput(initialBalance)),
                     )
                   }
                 >
@@ -1319,12 +1334,17 @@ export function MbcApp({
                       type="number"
                       min={1}
                       value={topUpAmount}
-                      onChange={(event) => setTopUpAmount(Number(event.target.value))}
+                      placeholder={text.topUpPlaceholder}
+                      onChange={(event) => setTopUpAmount(event.target.value)}
                     />
                   </div>
                   <Button
                     disabled={busy}
-                    onClick={() => runMutation((targetService) => targetService.topUp(topUpAmount))}
+                    onClick={() =>
+                      runMutation((targetService) =>
+                        targetService.topUp(parseAmountInput(topUpAmount)),
+                      )
+                    }
                   >
                     <Banknote className="h-4 w-4" />
                     {text.topUpBalance}

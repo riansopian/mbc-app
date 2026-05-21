@@ -45,6 +45,11 @@ describe("MbcApp role UI", () => {
     );
 
     expect(screen.getByText("Daftarkan kartu baru, isi saldo, dan reset status kunjungan.")).toBeInTheDocument();
+    expect(screen.getByLabelText("ID Anggota")).toHaveAttribute("placeholder", "MBC001");
+    expect(screen.getByLabelText("Nama")).toHaveAttribute("placeholder", "Anggota Koperasi");
+    expect(screen.getByLabelText("Saldo awal")).toHaveAttribute("placeholder", "50000");
+    expect((screen.getByLabelText("ID Anggota") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("Saldo awal") as HTMLInputElement).value).toBe("");
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.queryByText("Pintu Masuk")).not.toBeInTheDocument();
     expect(screen.queryByText("Pintu Keluar")).not.toBeInTheDocument();
