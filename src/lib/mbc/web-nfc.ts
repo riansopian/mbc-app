@@ -22,7 +22,7 @@ type NdefReader = EventTarget & {
     records: Array<{
       recordType: string;
       mediaType?: string;
-      data: string;
+      data: BufferSource;
     }>;
   }): Promise<void>;
 };
@@ -52,6 +52,10 @@ function decodeRecord(record: NdefRecordData) {
 
   const decoder = new TextDecoder();
   return decoder.decode(record.data);
+}
+
+function encodeMimePayload(value: string) {
+  return new TextEncoder().encode(value);
 }
 
 function findMbcPayload(records: NdefRecordData[]) {
@@ -117,7 +121,7 @@ export class WebNfcCardRepository implements CardRepository {
         {
           recordType: "mime",
           mediaType: MBC_MIME_TYPE,
-          data: payload,
+          data: encodeMimePayload(payload),
         },
       ],
     });
@@ -137,7 +141,7 @@ export class WebNfcCardRepository implements CardRepository {
         {
           recordType: "mime",
           mediaType: MBC_MIME_TYPE,
-          data: "",
+          data: encodeMimePayload(""),
         },
       ],
     });
