@@ -678,6 +678,7 @@ export function MbcApp({
   );
   const roleConfig = roleOptions.find((option) => option.role === activeRole);
   const allowedModes = roleConfig?.allowedModes ?? [];
+  const showModeTabs = allowedModes.length > 1;
   const canResetCard = activeRole === "ADMIN";
   const securePayload = useMemo(() => {
     if (!card) {
@@ -1230,32 +1231,34 @@ export function MbcApp({
 
       <section className={activeRole ? "mx-auto max-w-7xl px-4 pb-10 pt-2 sm:px-6 lg:px-8" : "hidden"}>
         <Tabs key={activeRole ?? "guest"} defaultValue={roleConfig?.defaultMode ?? "station"} className="space-y-6">
-          <TabsList className="grid !h-auto w-full grid-cols-1 gap-2 rounded-[24px] bg-white p-2 shadow-[0_12px_34px_rgba(0,26,65,0.08)] sm:rounded-full">
-            {allowedModes.includes("station") ? (
-              <TabsTrigger value="station" className="h-12 gap-2 rounded-full data-active:bg-primary data-active:text-white">
-                <CreditCard className="h-4 w-4" />
-                {text.navAdmin}
-              </TabsTrigger>
-            ) : null}
-            {allowedModes.includes("gate") ? (
-              <TabsTrigger value="gate" className="h-12 gap-2 rounded-full data-active:bg-primary data-active:text-white">
-                <DoorOpen className="h-4 w-4" />
-                {text.navEntry}
-              </TabsTrigger>
-            ) : null}
-            {allowedModes.includes("terminal") ? (
-              <TabsTrigger value="terminal" className="h-12 gap-2 rounded-full data-active:bg-primary data-active:text-white">
-                <DoorClosed className="h-4 w-4" />
-                {text.navExit}
-              </TabsTrigger>
-            ) : null}
-            {allowedModes.includes("scout") ? (
-              <TabsTrigger value="scout" className="h-12 gap-2 rounded-full data-active:bg-primary data-active:text-white">
-                <Eye className="h-4 w-4" />
-                {text.navMember}
-              </TabsTrigger>
-            ) : null}
-          </TabsList>
+          {showModeTabs ? (
+            <TabsList className="grid !h-auto w-full grid-cols-1 gap-2 rounded-[24px] bg-white p-2 shadow-[0_12px_34px_rgba(0,26,65,0.08)] sm:rounded-full">
+              {allowedModes.includes("station") ? (
+                <TabsTrigger value="station" className="h-12 gap-2 rounded-full data-active:bg-primary data-active:text-white">
+                  <CreditCard className="h-4 w-4" />
+                  {text.navAdmin}
+                </TabsTrigger>
+              ) : null}
+              {allowedModes.includes("gate") ? (
+                <TabsTrigger value="gate" className="h-12 gap-2 rounded-full data-active:bg-primary data-active:text-white">
+                  <DoorOpen className="h-4 w-4" />
+                  {text.navEntry}
+                </TabsTrigger>
+              ) : null}
+              {allowedModes.includes("terminal") ? (
+                <TabsTrigger value="terminal" className="h-12 gap-2 rounded-full data-active:bg-primary data-active:text-white">
+                  <DoorClosed className="h-4 w-4" />
+                  {text.navExit}
+                </TabsTrigger>
+              ) : null}
+              {allowedModes.includes("scout") ? (
+                <TabsTrigger value="scout" className="h-12 gap-2 rounded-full data-active:bg-primary data-active:text-white">
+                  <Eye className="h-4 w-4" />
+                  {text.navMember}
+                </TabsTrigger>
+              ) : null}
+            </TabsList>
+          ) : null}
 
           {allowedModes.includes("station") ? (
           <TabsContent value="station" className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">

@@ -45,6 +45,7 @@ describe("MbcApp role UI", () => {
     );
 
     expect(screen.getByText("Daftarkan kartu baru, isi saldo, dan reset status kunjungan.")).toBeInTheDocument();
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.queryByText("Pintu Masuk")).not.toBeInTheDocument();
     expect(screen.queryByText("Pintu Keluar")).not.toBeInTheDocument();
     expect(screen.queryByText("Kartu Anggota")).not.toBeInTheDocument();
