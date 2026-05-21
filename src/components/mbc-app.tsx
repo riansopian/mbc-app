@@ -268,10 +268,12 @@ const uiText = {
     readFirstTitle: "Tempelkan kartu NFC untuk dibaca",
     readFirstMessage:
       "Aplikasi akan membaca kartu dulu, lalu menyiapkan perubahan. Setelah itu tekan tombol tulis ke kartu.",
-    updateReadyTitle: "Perubahan siap ditulis",
+    updateReadyTitle: "Belum tersimpan ke kartu fisik",
     updateReadyMessage:
-      "Data kartu valid. Tekan tombol Tulis ke kartu NFC, lalu tempelkan kartu yang sama.",
+      "Data kartu valid, tetapi status di kartu belum berubah. Tekan Tulis ke kartu NFC, lalu tempelkan kartu yang sama sampai berhasil.",
     prepareNfcFailed: "Gagal menyiapkan perubahan NFC",
+    checkoutCardStillOut:
+      "Kartu fisik yang dibaca masih berstatus OUT. Kemungkinan check-in sebelumnya belum ditulis ke kartu. Kembali ke peran Pintu Masuk, tekan Check-in, lalu wajib tekan Tulis ke kartu NFC sampai muncul pesan kartu berhasil disimpan.",
     noPendingWrite: "Belum ada perubahan untuk ditulis",
     prepareFirst: "Baca kartu dan siapkan transaksi terlebih dahulu.",
     writeNfcTitle: "Tempelkan kartu NFC untuk ditulis",
@@ -397,10 +399,12 @@ const uiText = {
     readFirstTitle: "Tap NFC card to read",
     readFirstMessage:
       "The app will read the card first, then prepare the update. After that, press the write button.",
-    updateReadyTitle: "Update ready to write",
+    updateReadyTitle: "Not saved to the physical card yet",
     updateReadyMessage:
-      "Card data is valid. Press Write to NFC card, then tap the same card.",
+      "The card data is valid, but the physical card has not changed yet. Press Write to NFC card, then tap the same card until it succeeds.",
     prepareNfcFailed: "Failed to prepare NFC update",
+    checkoutCardStillOut:
+      "The physical card is still checked out. The previous check-in was probably not written to the card. Go back to Entry Gate, press Check-in, then press Write to NFC card until the card saved message appears.",
     noPendingWrite: "No update ready to write",
     prepareFirst: "Read the card and prepare a transaction first.",
     writeNfcTitle: "Tap NFC card to write",
@@ -811,16 +815,19 @@ export function MbcApp({
       setCard(result.card);
       setPendingPhysicalWrite(result.card);
       setFeedback({
-        tone: "success",
+        tone: "neutral",
         title: text.updateReadyTitle,
         message: text.updateReadyMessage,
       });
     } catch (error) {
       showPhysicalNfcIssue(error);
+      const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan.";
+      const isCheckoutStillOut =
+        activeRole === "TERMINAL" && errorMessage.includes("Kartu belum check-in");
       setFeedback({
         tone: "error",
         title: text.prepareNfcFailed,
-        message: error instanceof Error ? error.message : "Terjadi kesalahan.",
+        message: isCheckoutStillOut ? text.checkoutCardStillOut : errorMessage,
       });
     } finally {
       setBusy(false);
@@ -1191,16 +1198,16 @@ export function MbcApp({
             <AlertDescription>{feedback.message}</AlertDescription>
           </Alert>
           {physicalNfc && pendingPhysicalWrite ? (
-            <div className="rounded-[22px] border border-primary/20 bg-white p-4 shadow-sm">
+            <div className="rounded-[24px] border-2 border-primary bg-white p-4 shadow-[0_18px_44px_rgba(237,27,47,0.16)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-extrabold text-[#001a41]">{text.pendingWriteTitle}</p>
-                  <p className="text-sm text-slate-600">
+                  <p className="font-extrabold text-primary">{text.pendingWriteTitle}</p>
+                  <p className="text-sm font-semibold leading-6 text-[#001a41]">
                     {text.pendingWriteMessage}
                   </p>
                 </div>
                 <Button
-                  className="h-12"
+                  className="h-12 shadow-[0_12px_28px_rgba(237,27,47,0.24)]"
                   disabled={busy}
                   onClick={() => void writePendingPhysicalCard()}
                 >

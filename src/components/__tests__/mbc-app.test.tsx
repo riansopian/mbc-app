@@ -2,9 +2,18 @@
 
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { SilentShieldCodec } from "@/lib/mbc/security";
 import { MbcApp } from "../mbc-app";
+
+const MBC_MIME_TYPE = "application/vnd.mbc.card+json";
+
+function toDataView(value: string) {
+  const bytes = new TextEncoder().encode(value);
+
+  return new DataView(bytes.buffer);
+}
 
 function renderRole(role: string) {
   window.localStorage.clear();
@@ -17,6 +26,15 @@ describe("MbcApp role UI", () => {
   afterEach(() => {
     cleanup();
     window.localStorage.clear();
+    vi.restoreAllMocks();
+    Object.defineProperty(window, "NDEFReader", {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(window, "isSecureContext", {
+      configurable: true,
+      value: false,
+    });
   });
 
   it("shows only registration and top-up features for Admin Koperasi", async () => {
@@ -103,6 +121,65 @@ describe("MbcApp role UI", () => {
 
     await waitFor(() =>
       expect(screen.getByRole("dialog", { name: /NFC fisik membutuhkan HTTPS/i })).toBeInTheDocument(),
+    );
+  });
+
+  it("explains that physical check-in must be written before checkout", async () => {
+    const outCardPayload = JSON.stringify(
+      new SilentShieldCodec().encode({
+        memberId: "MBC001",
+        name: "Anggota Koperasi",
+        balance: 50_000,
+        visitStatus: "OUT",
+        checkInTimestamp: 0,
+        lastUpdatedAt: 1_000,
+        revision: 1,
+        cardNonce: "nonce",
+        logs: [],
+      }),
+    );
+
+    class MockNdefReader extends EventTarget {
+      async scan() {
+        queueMicrotask(() => {
+          this.dispatchEvent(
+            Object.assign(new Event("reading"), {
+              serialNumber: "04-TEST",
+              message: {
+                records: [
+                  {
+                    recordType: "mime",
+                    mediaType: MBC_MIME_TYPE,
+                    data: toDataView(outCardPayload),
+                  },
+                ],
+              },
+            }),
+          );
+        });
+      }
+
+      async write() {}
+    }
+
+    Object.defineProperty(window, "NDEFReader", {
+      configurable: true,
+      value: MockNdefReader,
+    });
+    Object.defineProperty(window, "isSecureContext", {
+      configurable: true,
+      value: true,
+    });
+    window.localStorage.clear();
+    window.history.replaceState(null, "", "/?role=terminal&nfc=physical");
+
+    render(<MbcApp initialRole="terminal" />);
+
+    await waitFor(() => expect(screen.getByText("Pintu Keluar")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /Check-out dan potong saldo/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/Kemungkinan check-in sebelumnya belum ditulis ke kartu/i)).toBeInTheDocument(),
     );
   });
 });
