@@ -188,4 +188,75 @@ describe("MbcApp role UI", () => {
       expect(screen.getByText(/Kemungkinan check-in sebelumnya belum ditulis ke kartu/i)).toBeInTheDocument(),
     );
   });
+
+  it("automatically writes physical NFC updates after reading a card", async () => {
+    const outCardPayload = JSON.stringify(
+      new SilentShieldCodec().encode({
+        memberId: "MBC001",
+        name: "Anggota Koperasi",
+        balance: 50_000,
+        visitStatus: "OUT",
+        checkInTimestamp: 0,
+        lastUpdatedAt: 1_000,
+        revision: 1,
+        cardNonce: "nonce",
+        logs: [],
+      }),
+    );
+    const writtenMessages: Array<{
+      records: Array<{ recordType: string; mediaType?: string; data: BufferSource }>;
+    }> = [];
+
+    class MockNdefReader extends EventTarget {
+      async scan() {
+        queueMicrotask(() => {
+          this.dispatchEvent(
+            Object.assign(new Event("reading"), {
+              serialNumber: "04-TEST",
+              message: {
+                records: [
+                  {
+                    recordType: "mime",
+                    mediaType: MBC_MIME_TYPE,
+                    data: toDataView(outCardPayload),
+                  },
+                ],
+              },
+            }),
+          );
+        });
+      }
+
+      async write(message: {
+        records: Array<{ recordType: string; mediaType?: string; data: BufferSource }>;
+      }) {
+        writtenMessages.push(message);
+      }
+    }
+
+    Object.defineProperty(window, "NDEFReader", {
+      configurable: true,
+      value: MockNdefReader,
+    });
+    Object.defineProperty(window, "isSecureContext", {
+      configurable: true,
+      value: true,
+    });
+    window.localStorage.clear();
+    window.history.replaceState(null, "", "/?role=gate&nfc=physical");
+
+    render(<MbcApp initialRole="gate" />);
+
+    await waitFor(() => expect(screen.getByText("Pintu Masuk")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /Check-in/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText("Kartu NFC berhasil disimpan")).toBeInTheDocument(),
+    );
+    expect(writtenMessages).toHaveLength(1);
+    expect(writtenMessages[0].records[0]).toMatchObject({
+      recordType: "mime",
+      mediaType: MBC_MIME_TYPE,
+    });
+  });
 });

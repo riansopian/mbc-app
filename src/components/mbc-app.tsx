@@ -184,8 +184,9 @@ const uiText = {
     status: "Status",
     checkIn: "Check-in",
     savedLogs: "Log tersimpan",
-    pendingWriteTitle: "Perubahan kartu siap ditulis",
-    pendingWriteMessage: "Tekan tombol ini, lalu tempelkan kartu NFC yang sama.",
+    pendingWriteTitle: "Penulisan otomatis belum selesai",
+    pendingWriteMessage:
+      "Jika kartu sempat terangkat atau gagal ditulis otomatis, tekan tombol ini lalu tempelkan kartu NFC yang sama.",
     writeToNfc: "Tulis ke kartu NFC",
     navAdmin: "Admin",
     navEntry: "Masuk",
@@ -271,10 +272,10 @@ const uiText = {
     detectedNoSerial: "Kartu terbaca. Tahan kartu sampai proses selesai.",
     readFirstTitle: "Tempelkan kartu NFC untuk dibaca",
     readFirstMessage:
-      "Aplikasi akan membaca kartu dulu, lalu menyiapkan perubahan. Setelah itu tekan tombol tulis ke kartu.",
-    updateReadyTitle: "Belum tersimpan ke kartu fisik",
+      "Aplikasi akan membaca kartu, menyiapkan perubahan, lalu langsung menulis ke kartu yang sama. Tahan kartu sampai muncul pesan berhasil.",
+    updateReadyTitle: "Menulis perubahan ke kartu",
     updateReadyMessage:
-      "Data kartu valid, tetapi status di kartu belum berubah. Tekan Tulis ke kartu NFC, lalu tempelkan kartu yang sama sampai berhasil.",
+      "Data kartu valid. Tetap tahan kartu di area NFC sampai proses tulis selesai.",
     prepareNfcFailed: "Gagal menyiapkan perubahan NFC",
     checkoutCardStillOut:
       "Kartu fisik yang dibaca masih berstatus OUT. Kemungkinan check-in sebelumnya belum ditulis ke kartu. Kembali ke peran Pintu Masuk, tekan Check-in, lalu wajib tekan Tulis ke kartu NFC sampai muncul pesan kartu berhasil disimpan.",
@@ -320,8 +321,9 @@ const uiText = {
     status: "Status",
     checkIn: "Check-in",
     savedLogs: "Saved logs",
-    pendingWriteTitle: "Card update is ready",
-    pendingWriteMessage: "Press this button, then tap the same NFC card.",
+    pendingWriteTitle: "Automatic write did not finish",
+    pendingWriteMessage:
+      "If the card was moved away or automatic write failed, press this button and tap the same NFC card.",
     writeToNfc: "Write to NFC card",
     navAdmin: "Admin",
     navEntry: "Entry",
@@ -406,10 +408,10 @@ const uiText = {
     detectedNoSerial: "Card detected. Keep holding it until the process finishes.",
     readFirstTitle: "Tap NFC card to read",
     readFirstMessage:
-      "The app will read the card first, then prepare the update. After that, press the write button.",
-    updateReadyTitle: "Not saved to the physical card yet",
+      "The app will read the card, prepare the update, then write to the same card automatically. Keep holding the card until it succeeds.",
+    updateReadyTitle: "Writing update to card",
     updateReadyMessage:
-      "The card data is valid, but the physical card has not changed yet. Press Write to NFC card, then tap the same card until it succeeds.",
+      "The card data is valid. Keep holding the card near NFC until writing finishes.",
     prepareNfcFailed: "Failed to prepare NFC update",
     checkoutCardStillOut:
       "The physical card is still checked out. The previous check-in was probably not written to the card. Go back to Entry Gate, press Check-in, then press Write to NFC card until the card saved message appears.",
@@ -826,12 +828,31 @@ export function MbcApp({
       const result = await operation(draftService);
 
       setCard(result.card);
-      setPendingPhysicalWrite(result.card);
       setFeedback({
         tone: "neutral",
         title: text.updateReadyTitle,
         message: text.updateReadyMessage,
       });
+
+      try {
+        await new WebNfcCardRepository(new SilentShieldCodec()).write(result.card);
+        setPendingPhysicalWrite(null);
+        setFeedback({
+          tone: "success",
+          title: text.writeNfcSuccess,
+          message: text.writeNfcSuccessMessage,
+        });
+      } catch (writeError) {
+        showPhysicalNfcIssue(writeError);
+        setPendingPhysicalWrite(result.card);
+        setFeedback({
+          tone: "error",
+          title: text.writeNfcFailed,
+          message: `${
+            writeError instanceof Error ? writeError.message : "Terjadi kesalahan."
+          } ${text.pendingWriteMessage}`,
+        });
+      }
     } catch (error) {
       showPhysicalNfcIssue(error);
       const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan.";
