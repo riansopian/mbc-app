@@ -106,6 +106,22 @@ describe("MbcApp role UI", () => {
     expect(screen.getByText("Save simulated card")).toBeInTheDocument();
   });
 
+  it("translates transaction feedback when switching to English", async () => {
+    renderRole("member");
+
+    await waitFor(() => expect(screen.getByText("Kartu Anggota")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Baca kartu simulasi" }));
+
+    await waitFor(() => expect(screen.getByText("Transaksi gagal")).toBeInTheDocument());
+    expect(screen.getByText("Kartu belum terdaftar.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ganti bahasa ke English US" }));
+
+    expect(screen.getByText("Transaction failed")).toBeInTheDocument();
+    expect(screen.getByText("Card is not registered yet.")).toBeInTheDocument();
+    expect(screen.queryByText("Transaksi gagal")).not.toBeInTheDocument();
+  });
+
   it("shows a popup when physical NFC mode is selected on an unsupported browser", async () => {
     renderRole("admin");
 
