@@ -22,6 +22,7 @@ import {
   SmartphoneNfc,
   UserRound,
   WalletCards,
+  X,
 } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -66,6 +67,12 @@ type Feedback = {
   tone: "success" | "error" | "neutral";
   title: string;
   message: string;
+};
+
+type NfcIssueDialogContent = {
+  title: string;
+  message: string;
+  helper?: string;
 };
 
 type UserRole = "ADMIN" | "GATE" | "TERMINAL" | "MEMBER";
@@ -272,6 +279,14 @@ const uiText = {
     writeNfcSuccess: "Kartu NFC berhasil disimpan",
     writeNfcSuccessMessage: "Perubahan sudah tersimpan ke kartu fisik.",
     writeNfcFailed: "Gagal menulis kartu NFC",
+    nfcDialogEyebrow: "Mode NFC fisik",
+    nfcDialogHelp:
+      "Mode simulasi tetap bisa dipakai untuk menguji registrasi, check-in, check-out, top-up, dan baca kartu.",
+    useSimulationMode: "Pakai simulasi",
+    closeDialog: "Tutup",
+    nfcNotDetectedTitle: "Kartu NFC tidak terdeteksi",
+    nfcNotDetectedMessage:
+      "Tempelkan kartu lebih dekat ke area NFC HP, tahan beberapa detik, lalu coba lagi. Pastikan NFC HP aktif dan kartu mendukung NDEF.",
     roleActive: (roleTitle: string) => `${roleTitle} aktif`,
     readOnlySuccess: "Kartu berhasil dibaca.",
   },
@@ -393,6 +408,14 @@ const uiText = {
     writeNfcSuccess: "NFC card saved",
     writeNfcSuccessMessage: "The update has been saved to the physical card.",
     writeNfcFailed: "Failed to write NFC card",
+    nfcDialogEyebrow: "Physical NFC mode",
+    nfcDialogHelp:
+      "Simulation mode can still test registration, check-in, check-out, top-up, and card lookup.",
+    useSimulationMode: "Use simulation",
+    closeDialog: "Close",
+    nfcNotDetectedTitle: "NFC card was not detected",
+    nfcNotDetectedMessage:
+      "Move the card closer to the phone NFC area, hold it for a few seconds, then try again. Make sure phone NFC is enabled and the card supports NDEF.",
     roleActive: (roleTitle: string) => `${roleTitle} active`,
     readOnlySuccess: "Card read successfully.",
   },
@@ -619,6 +642,8 @@ export function MbcApp({
   const [nfcStatusMessage, setNfcStatusMessage] = useState(
     "NFC fisik membutuhkan Chrome Android dan HTTPS.",
   );
+  const [nfcIssueDialog, setNfcIssueDialog] =
+    useState<NfcIssueDialogContent | null>(null);
   const [busy, setBusy] = useState(false);
   const [simulationMode, setSimulationMode] = useState(true);
   const [simulatedCheckIn, setSimulatedCheckIn] = useState("");
@@ -679,6 +704,13 @@ export function MbcApp({
         setPhysicalNfc(requestedPhysicalNfc || nfcStatus.supported);
         setNfcStatusTitle(nfcStatus.title);
         setNfcStatusMessage(nfcStatus.message);
+        if (requestedPhysicalNfc && !nfcStatus.supported) {
+          setNfcIssueDialog({
+            title: nfcStatus.title,
+            message: nfcStatus.message,
+            helper: uiText[storedLocale].nfcDialogHelp,
+          });
+        }
         setSimulatedCheckIn(toInputDateTime(Date.now() - 65 * 60 * 1000));
 
         const roleFromUrl =
@@ -718,6 +750,7 @@ export function MbcApp({
             : result.message,
       });
     } catch (error) {
+      showPhysicalNfcIssue(error);
       setFeedback({
         tone: "error",
         title: text.transactionFailed,
@@ -740,6 +773,7 @@ export function MbcApp({
         message: text.restartFromAdmin,
       });
     } catch (error) {
+      showPhysicalNfcIssue(error);
       setFeedback({
         tone: "error",
         title: text.resetFailed,
@@ -782,6 +816,7 @@ export function MbcApp({
         message: text.updateReadyMessage,
       });
     } catch (error) {
+      showPhysicalNfcIssue(error);
       setFeedback({
         tone: "error",
         title: text.prepareNfcFailed,
@@ -819,6 +854,7 @@ export function MbcApp({
         message: text.writeNfcSuccessMessage,
       });
     } catch (error) {
+      showPhysicalNfcIssue(error);
       setFeedback({
         tone: "error",
         title: text.writeNfcFailed,
@@ -838,6 +874,84 @@ export function MbcApp({
     }
 
     void stagePhysicalOperation(operation);
+  }
+
+  function getPhysicalNfcIssue(error: unknown): NfcIssueDialogContent | null {
+    const message = error instanceof Error ? error.message : "";
+    const normalizedMessage = message.toLowerCase();
+
+    if (
+      normalizedMessage.includes("waktu membaca nfc habis") ||
+      normalizedMessage.includes("timeout") ||
+      normalizedMessage.includes("timed out")
+    ) {
+      return {
+        title: text.nfcNotDetectedTitle,
+        message: text.nfcNotDetectedMessage,
+        helper: message || text.nfcDialogHelp,
+      };
+    }
+
+    if (
+      !webNfcSupported ||
+      normalizedMessage.includes("web nfc") ||
+      normalizedMessage.includes("fitur nfc") ||
+      normalizedMessage.includes("ndefreader") ||
+      normalizedMessage.includes("notallowederror") ||
+      normalizedMessage.includes("permission")
+    ) {
+      return {
+        title: nfcStatusTitle,
+        message: nfcStatusMessage,
+        helper: message || text.nfcDialogHelp,
+      };
+    }
+
+    return null;
+  }
+
+  function showPhysicalNfcIssue(error: unknown) {
+    if (!physicalNfc) {
+      return;
+    }
+
+    const issue = getPhysicalNfcIssue(error);
+
+    if (issue) {
+      setNfcIssueDialog(issue);
+    }
+  }
+
+  function activateSimulationMode() {
+    setPhysicalNfc(false);
+    setPendingPhysicalWrite(null);
+    setNfcIssueDialog(null);
+    window.history.replaceState(null, "", buildModeHref(activeRole, false));
+    setFeedback({
+      tone: "neutral",
+      title: text.simulationActive,
+      message: text.simulationWorks,
+    });
+  }
+
+  function activatePhysicalNfcMode() {
+    setPhysicalNfc(true);
+    window.history.replaceState(null, "", buildModeHref(activeRole, true));
+
+    if (!webNfcSupported) {
+      const issue = {
+        title: nfcStatusTitle,
+        message: nfcStatusMessage,
+        helper: text.nfcDialogHelp,
+      };
+
+      setNfcIssueDialog(issue);
+      setFeedback({
+        tone: "error",
+        title: issue.title,
+        message: issue.message,
+      });
+    }
   }
 
   function loginAsRole(role: UserRole) {
@@ -868,6 +982,13 @@ export function MbcApp({
     const nfcStatus = getNfcStatus(nextLocale);
     setNfcStatusTitle(nfcStatus.title);
     setNfcStatusMessage(nfcStatus.message);
+    if (nfcIssueDialog) {
+      setNfcIssueDialog({
+        title: nfcStatus.title,
+        message: nfcStatus.message,
+        helper: uiText[nextLocale].nfcDialogHelp,
+      });
+    }
   }
 
   const nfcReadyLabel = webNfcSupported
@@ -946,6 +1067,17 @@ export function MbcApp({
         </div>
       </header>
 
+      {nfcIssueDialog ? (
+        <NfcIssueDialog
+          title={nfcIssueDialog.title}
+          message={nfcIssueDialog.message}
+          helper={nfcIssueDialog.helper ?? text.nfcDialogHelp}
+          locale={locale}
+          onUseSimulation={activateSimulationMode}
+          onClose={() => setNfcIssueDialog(null)}
+        />
+      ) : null}
+
       {!activeRole ? (
         <RoleLoginPanel locale={locale} onLogin={loginAsRole} />
       ) : null}
@@ -984,6 +1116,10 @@ export function MbcApp({
               <div className="grid grid-cols-2 gap-2 rounded-[22px] bg-slate-100 p-1.5">
                 <a
                   href={buildModeHref(activeRole, false)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    activateSimulationMode();
+                  }}
                   className={cn(
                     "flex min-h-12 items-center justify-center gap-2 rounded-[18px] px-3 py-2 text-center text-sm font-bold transition",
                     !physicalNfc
@@ -997,6 +1133,10 @@ export function MbcApp({
                 </a>
                 <a
                   href={buildModeHref(activeRole, true)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    activatePhysicalNfcMode();
+                  }}
                   className={cn(
                     "flex min-h-12 items-center justify-center gap-2 rounded-[18px] px-3 py-2 text-center text-sm font-bold transition",
                     physicalNfc
@@ -1517,6 +1657,84 @@ function NfcSupportNotice({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function NfcIssueDialog({
+  title,
+  message,
+  helper,
+  locale,
+  onUseSimulation,
+  onClose,
+}: {
+  title: string;
+  message: string;
+  helper: string;
+  locale: AppLocale;
+  onUseSimulation: () => void;
+  onClose: () => void;
+}) {
+  const text = uiText[locale];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#001a41]/45 px-4 py-6 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <section
+        aria-labelledby="nfc-issue-title"
+        aria-describedby="nfc-issue-description"
+        aria-modal="true"
+        className="w-full max-w-lg rounded-[28px] border border-white bg-white p-5 shadow-[0_28px_90px_rgba(0,26,65,0.22)] sm:p-6"
+        role="dialog"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
+              <SmartphoneNfc className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">
+                {text.nfcDialogEyebrow}
+              </p>
+              <h2 id="nfc-issue-title" className="mt-2 text-xl font-black text-[#001a41]">
+                {title}
+              </h2>
+            </div>
+          </div>
+          <Button
+            aria-label={text.closeDialog}
+            className="size-10 shrink-0 border-slate-200 bg-white text-[#001a41]"
+            onClick={onClose}
+            size="icon"
+            variant="outline"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <p id="nfc-issue-description" className="mt-4 text-sm leading-6 text-slate-600">
+          {message}
+        </p>
+        <div className="mt-4 rounded-[20px] border border-emerald-100 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">
+          {helper}
+        </div>
+        <div className="mt-5 grid gap-2 sm:grid-cols-[1fr_auto]">
+          <Button className="h-12" onClick={onUseSimulation}>
+            <QrCode className="h-4 w-4" />
+            {text.useSimulationMode}
+          </Button>
+          <Button className="h-12 border-slate-200 bg-white text-[#001a41]" onClick={onClose} variant="outline">
+            {text.closeDialog}
+          </Button>
+        </div>
+      </section>
+    </div>
   );
 }
 

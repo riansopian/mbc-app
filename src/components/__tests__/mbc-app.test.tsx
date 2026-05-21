@@ -81,4 +81,28 @@ describe("MbcApp role UI", () => {
     expect(screen.getAllByText("Cooperative Admin").length).toBeGreaterThan(0);
     expect(screen.getByText("Save simulated card")).toBeInTheDocument();
   });
+
+  it("shows a popup when physical NFC mode is selected on an unsupported browser", async () => {
+    renderRole("admin");
+
+    await waitFor(() =>
+      expect(screen.getAllByText("Admin Koperasi").length).toBeGreaterThan(0),
+    );
+
+    fireEvent.click(screen.getByRole("link", { name: /NFC Fisik/i }));
+
+    expect(screen.getByRole("dialog", { name: /NFC fisik membutuhkan HTTPS/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pakai simulasi" })).toBeInTheDocument();
+  });
+
+  it("shows the unsupported NFC popup when physical mode is opened from the URL", async () => {
+    window.localStorage.clear();
+    window.history.replaceState(null, "", "/?role=admin&nfc=physical");
+
+    render(<MbcApp initialRole="admin" />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("dialog", { name: /NFC fisik membutuhkan HTTPS/i })).toBeInTheDocument(),
+    );
+  });
 });
