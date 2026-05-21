@@ -25,6 +25,10 @@ function assertRegistered(card: PlainCardData | null): asserts card is PlainCard
   }
 }
 
+function createCardNonce(timestamp: number) {
+  return crypto.randomUUID?.().replaceAll("-", "").slice(0, 16) ?? `${timestamp}`;
+}
+
 export class MembershipCardService {
   private operationLock: Promise<unknown> = Promise.resolve();
 
@@ -79,7 +83,7 @@ export class MembershipCardService {
         checkInTimestamp: 0,
         lastUpdatedAt: timestamp,
         revision: 0,
-        cardNonce: crypto.randomUUID?.() ?? `${timestamp}-${Math.random()}`,
+        cardNonce: createCardNonce(timestamp),
         logs: [],
       },
       {

@@ -21,12 +21,20 @@ export interface PlainCardData {
   logs: TransactionLog[];
 }
 
-export interface SecureCardPayload {
+export interface LegacySecureCardPayload {
   version: 1 | 2;
   encodedData: string;
   checksum: string;
   algorithm?: "AES";
 }
+
+export interface CompactSecureCardPayload {
+  v: 3;
+  d: string;
+  c: string;
+}
+
+export type SecureCardPayload = LegacySecureCardPayload | CompactSecureCardPayload;
 
 export interface OperationResult {
   card: PlainCardData;

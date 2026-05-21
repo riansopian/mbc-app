@@ -21,8 +21,7 @@ describe("SilentShieldCodec", () => {
     const payload = codec.encode(card);
     const serializedPayload = JSON.stringify(payload);
 
-    expect(payload.version).toBe(2);
-    expect(payload.algorithm).toBe("AES");
+    expect(payload).toMatchObject({ v: 3 });
     expect(serializedPayload).not.toContain(card.name);
     expect(serializedPayload).not.toContain(card.memberId);
     expect(serializedPayload).not.toContain(String(card.balance));
@@ -33,8 +32,24 @@ describe("SilentShieldCodec", () => {
     const codec = new SilentShieldCodec();
     const payload = codec.encode(card);
 
-    expect(() =>
-      codec.decode({ ...payload, encodedData: `${payload.encodedData}tampered` }),
-    ).toThrow("Checksum");
+    expect(() => codec.decode({ ...payload, d: `${payload.d}tampered` })).toThrow(
+      "Checksum",
+    );
+  });
+
+  it("keeps the encrypted payload compact enough for common NTAG215/216 cards", () => {
+    const codec = new SilentShieldCodec();
+    const payload = codec.encode({
+      ...card,
+      logs: [
+        { type: "REGISTER", amount: 50_000, timestamp: 1_000, note: "Kartu anggota dibuat" },
+        { type: "TOPUP", amount: 25_000, timestamp: 2_000, note: "Saldo kartu ditambahkan" },
+        { type: "CHECKIN", amount: 0, timestamp: 3_000, note: "Anggota check-in di pintu masuk" },
+        { type: "CHECKOUT", amount: 2_000, timestamp: 4_000, note: "Kunjungan 1 jam" },
+        { type: "RESET", amount: 0, timestamp: 5_000, note: "Status kunjungan direset oleh admin" },
+      ],
+    });
+
+    expect(new TextEncoder().encode(JSON.stringify(payload)).byteLength).toBeLessThan(450);
   });
 });

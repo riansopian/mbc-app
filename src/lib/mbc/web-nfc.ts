@@ -58,6 +58,23 @@ function encodeMimePayload(value: string) {
   return new TextEncoder().encode(value);
 }
 
+function normalizeWriteError(error: unknown): Error {
+  const message = error instanceof Error ? error.message : String(error);
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    normalizedMessage.includes("io error") ||
+    normalizedMessage.includes("networkerror") ||
+    normalizedMessage.includes("failed to write")
+  ) {
+    return new Error(
+      "Kartu NFC gagal ditulis. Tahan kartu lebih lama di area NFC HP. Jika masih gagal, kemungkinan kartu belum berformat NDEF, terkunci/read-only, atau kapasitasnya terlalu kecil. Gunakan kartu NTAG215/NTAG216 atau format kartu dengan aplikasi NFC Tools.",
+    );
+  }
+
+  return error instanceof Error ? error : new Error(message);
+}
+
 function findMbcPayload(records: NdefRecordData[]) {
   const record = records.find(
     (item) =>
@@ -116,15 +133,19 @@ export class WebNfcCardRepository implements CardRepository {
       }
     }
 
-    await reader.write({
-      records: [
-        {
-          recordType: "mime",
-          mediaType: MBC_MIME_TYPE,
-          data: encodeMimePayload(payload),
-        },
-      ],
-    });
+    try {
+      await reader.write({
+        records: [
+          {
+            recordType: "mime",
+            mediaType: MBC_MIME_TYPE,
+            data: encodeMimePayload(payload),
+          },
+        ],
+      });
+    } catch (error) {
+      throw normalizeWriteError(error);
+    }
   }
 
   async clear(): Promise<void> {
@@ -136,15 +157,19 @@ export class WebNfcCardRepository implements CardRepository {
     }
     const reader = new Reader();
 
-    await reader.write({
-      records: [
-        {
-          recordType: "mime",
-          mediaType: MBC_MIME_TYPE,
-          data: encodeMimePayload(""),
-        },
-      ],
-    });
+    try {
+      await reader.write({
+        records: [
+          {
+            recordType: "mime",
+            mediaType: MBC_MIME_TYPE,
+            data: encodeMimePayload(""),
+          },
+        ],
+      });
+    } catch (error) {
+      throw normalizeWriteError(error);
+    }
   }
 
   async exportSecurePayload(): Promise<SecureCardPayload | null> {

@@ -187,8 +187,38 @@ describe("WebNfcCardRepository", () => {
     });
     expect(ArrayBuffer.isView(writtenMessages[0].records[0].data)).toBe(true);
     expect(JSON.parse(decodeWrittenData(writtenMessages[0].records[0].data))).toMatchObject({
-      version: 2,
-      algorithm: "AES",
+      v: 3,
     });
+  });
+
+  it("explains browser IO write failures in user-friendly language", async () => {
+    const codec = new SilentShieldCodec();
+    const card = {
+      memberId: "MBC001",
+      name: "Anggota",
+      balance: 50_000,
+      visitStatus: "OUT" as const,
+      checkInTimestamp: 0,
+      lastUpdatedAt: 1_000,
+      revision: 1,
+      cardNonce: "nonce",
+      logs: [],
+    };
+
+    class FailingNdefReader extends EventTarget {
+      async scan() {}
+      async write() {
+        throw new Error("Failed to write due to an IO error: null");
+      }
+    }
+
+    Object.defineProperty(window, "NDEFReader", {
+      configurable: true,
+      value: FailingNdefReader,
+    });
+
+    await expect(new WebNfcCardRepository(codec).write(card)).rejects.toThrow(
+      "Kartu NFC gagal ditulis",
+    );
   });
 });
