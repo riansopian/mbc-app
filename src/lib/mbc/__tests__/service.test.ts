@@ -89,6 +89,18 @@ describe("MembershipCardService", () => {
     expect(result.card.balance).toBe(46_000);
   });
 
+  it("does not deduct balance when check-out happens at the same timestamp", async () => {
+    await service.register("MBC001", "Anggota", 50_000);
+    await service.checkIn(1_000_000);
+
+    clock.set(1_000_000);
+    const result = await service.checkOut();
+
+    expect(result.durationHours).toBe(0);
+    expect(result.fee).toBe(0);
+    expect(result.card.balance).toBe(50_000);
+  });
+
   it("rejects invalid and future simulation timestamps", async () => {
     await service.register("MBC001", "Anggota", 50_000);
 

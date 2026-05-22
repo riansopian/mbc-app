@@ -10,7 +10,7 @@ describe("MembershipBenefitTariff", () => {
   const tariff = new MembershipBenefitTariff();
 
   it.each([
-    ["0ms", START, 1, 2_000],
+    ["0ms", START, 0, 0],
     ["1ms", START + 1, 1, 2_000],
     ["59m", START + 59 * MINUTE, 1, 2_000],
     ["59m59s", START + 59 * MINUTE + 59_000, 1, 2_000],

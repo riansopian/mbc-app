@@ -24,7 +24,7 @@ export class MembershipBenefitTariff implements TariffPolicy {
       throw new Error("Timestamp check-out tidak boleh lebih awal dari check-in.");
     }
 
-    const elapsedMs = Math.max(checkOutTimestamp - checkInTimestamp, 1);
+    const elapsedMs = checkOutTimestamp - checkInTimestamp;
     const durationHours = Math.ceil(elapsedMs / HOUR_IN_MS);
 
     return {
