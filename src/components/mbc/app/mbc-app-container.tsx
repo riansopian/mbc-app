@@ -69,6 +69,7 @@ export function MbcApp({ initialRole }: { initialRole?: string | null }) {
           memberId={app.memberId}
           name={app.name}
           physicalNfc={app.physicalNfc}
+          regenerateMemberId={app.regenerateMemberId}
           runMutation={app.runMutation}
           securePayload={app.securePayload}
           service={app.service}

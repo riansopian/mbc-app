@@ -22,6 +22,7 @@ export function RoleWorkspace({
   memberId,
   name,
   physicalNfc,
+  regenerateMemberId,
   runMutation,
   securePayload,
   service,
@@ -46,6 +47,7 @@ export function RoleWorkspace({
   memberId: string;
   name: string;
   physicalNfc: boolean;
+  regenerateMemberId: () => void;
   runMutation: MutationRunner;
   securePayload: string;
   service: MembershipCardService;
@@ -75,6 +77,7 @@ export function RoleWorkspace({
               memberId={memberId}
               name={name}
               physicalNfc={physicalNfc}
+              regenerateMemberId={regenerateMemberId}
               runMutation={runMutation}
               securePayload={securePayload}
               service={service}

@@ -123,6 +123,7 @@ describe("MBC focused components", () => {
       void operation();
     });
     const runMutation = vi.fn();
+    const regenerateMemberId = vi.fn();
     const setInitialBalance = vi.fn();
     const setMemberId = vi.fn();
     const setName = vi.fn();
@@ -136,6 +137,7 @@ describe("MBC focused components", () => {
         memberId=""
         name=""
         physicalNfc={false}
+        regenerateMemberId={regenerateMemberId}
         runMutation={runMutation}
         securePayload=""
         service={service}
@@ -157,11 +159,13 @@ describe("MBC focused components", () => {
     fireEvent.change(screen.getByLabelText("Saldo awal"), {
       target: { value: "50000" },
     });
+    fireEvent.click(screen.getByRole("button", { name: "Generate ID" }));
     fireEvent.click(screen.getByRole("button", { name: /simpan kartu simulasi/i }));
 
     expect(setMemberId).toHaveBeenCalledWith("MBC777");
     expect(setName).toHaveBeenCalledWith("Rian");
     expect(setInitialBalance).toHaveBeenCalledWith("50000");
+    expect(regenerateMemberId).toHaveBeenCalledTimes(1);
     expect(handleOperation).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(service.register).toHaveBeenCalledWith("", "", NaN));
 
@@ -181,6 +185,7 @@ describe("MBC focused components", () => {
         memberId="MBC001"
         name="Anggota"
         physicalNfc
+        regenerateMemberId={vi.fn()}
         runMutation={vi.fn()}
         securePayload="secret"
         service={{} as MembershipCardService}

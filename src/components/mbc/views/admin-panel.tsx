@@ -1,4 +1,4 @@
-import { Banknote, KeyRound } from "lucide-react";
+import { Banknote, KeyRound, RefreshCcw } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ export function AdminPanel({
   memberId,
   name,
   physicalNfc,
+  regenerateMemberId,
   runMutation,
   securePayload,
   service,
@@ -46,6 +47,7 @@ export function AdminPanel({
   memberId: string;
   name: string;
   physicalNfc: boolean;
+  regenerateMemberId: () => void;
   runMutation: MutationRunner;
   securePayload: string;
   service: MembershipCardService;
@@ -66,12 +68,26 @@ export function AdminPanel({
         <CardContent className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-3">
             <Field id="member-id" label={text.memberId}>
-              <Input
-                id="member-id"
-                value={memberId}
-                placeholder={text.memberIdPlaceholder}
-                onChange={(event) => setMemberId(event.target.value)}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="member-id"
+                  value={memberId}
+                  placeholder={text.memberIdPlaceholder}
+                  onChange={(event) => setMemberId(event.target.value)}
+                />
+                <Button
+                  aria-label={text.generateMemberId}
+                  className="h-12 shrink-0 border-slate-200 bg-white text-[#001a41]"
+                  disabled={busy}
+                  onClick={regenerateMemberId}
+                  size="icon"
+                  title={text.generateMemberId}
+                  type="button"
+                  variant="outline"
+                >
+                  <RefreshCcw className="h-4 w-4" />
+                </Button>
+              </div>
             </Field>
             <Field id="member-name" label={text.name}>
               <Input

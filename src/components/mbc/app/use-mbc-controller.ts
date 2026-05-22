@@ -12,6 +12,7 @@ import {
 import { getErrorMessage, translateErrorMessage, translateFeedbackTitle } from "../logic/errors";
 import { getPhysicalNfcIssue } from "../logic/nfc-issues";
 import { getNfcStatus } from "../logic/nfc-status";
+import { generateMemberId } from "../logic/member-id";
 import { DraftCardRepository, createService, readLocalInitialCard } from "../adapters/repositories";
 import { buildModeHref, parseNfcMode, parseRoleValue } from "../logic/routing";
 import { roleDescription, roleOptions, roleTitle } from "../logic/roles";
@@ -97,6 +98,7 @@ export function useMbcController(initialRole?: string | null) {
         if (roleFromUrl) setActiveRole(roleFromUrl);
         const storedCard = await readLocalInitialCard();
         if (!nfcStatus.supported) setCard(storedCard);
+        setMemberId((current) => current || generateMemberId());
       } finally {
         setMounted(true);
       }
@@ -271,11 +273,14 @@ export function useMbcController(initialRole?: string | null) {
       });
     }
   }
+  function regenerateMemberId() {
+    setMemberId(generateMemberId());
+  }
   return {
     activeRole, allowedModes, busy, card, clearCard, feedback, handleOperation,
     initialBalance, locale, loginAsRole, memberId, mounted, name, nfcIssueDialog,
     nfcStatusMessage, nfcStatusTitle, pendingPhysicalWrite, physicalNfc,
-    roleConfig, runMutation, securePayload, service, setInitialBalance, setMemberId,
+    regenerateMemberId, roleConfig, runMutation, securePayload, service, setInitialBalance, setMemberId,
     setName, setNfcIssueDialog, setSimulatedCheckIn, setSimulationMode,
     setTopUpAmount, simulatedCheckIn, simulationMode, text, toggleLocale, topUpAmount,
     webNfcSupported, activatePhysicalNfcMode, activateSimulationMode,

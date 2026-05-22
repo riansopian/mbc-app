@@ -48,7 +48,11 @@ describe("MbcApp role UI", () => {
     expect(screen.getByLabelText("ID Anggota")).toHaveAttribute("placeholder", "MBC001");
     expect(screen.getByLabelText("Nama")).toHaveAttribute("placeholder", "Anggota Koperasi");
     expect(screen.getByLabelText("Saldo awal")).toHaveAttribute("placeholder", "50000");
-    expect((screen.getByLabelText("ID Anggota") as HTMLInputElement).value).toBe("");
+    await waitFor(() =>
+      expect((screen.getByLabelText("ID Anggota") as HTMLInputElement).value).toMatch(
+        /^MBC-\d{6}-\d{4}$/,
+      ),
+    );
     expect((screen.getByLabelText("Saldo awal") as HTMLInputElement).value).toBe("");
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.queryByText("Pintu Masuk")).not.toBeInTheDocument();
