@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage --pool=forks --maxWorkers=1 --coverage.reporter=lcov --coverage.reporter=text"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
