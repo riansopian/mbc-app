@@ -17,8 +17,8 @@ import {
 import { formatCurrency, formatDateTime } from "@/lib/mbc/format";
 import type { PlainCardData } from "@/lib/mbc/types";
 
-import type { AppLocale } from "./types";
-import { uiText } from "./ui-text";
+import type { AppLocale } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function TransactionTable({
   card,

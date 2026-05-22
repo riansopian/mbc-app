@@ -1,5 +1,5 @@
 import type { NfcIssueDialogContent } from "./types";
-import { uiText } from "./ui-text";
+import { uiText } from "../i18n/ui-text";
 
 export function getPhysicalNfcIssue({
   error,

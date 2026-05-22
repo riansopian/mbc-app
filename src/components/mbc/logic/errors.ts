@@ -1,4 +1,4 @@
-import { uiText } from './ui-text';
+import { uiText } from '../i18n/ui-text';
 import type { AppLocale } from './types';
 
 const errorTranslations = [

@@ -1,6 +1,6 @@
 import { Card, CardHeader } from "@/components/ui/card";
 
-import { TelkomselMark } from "./brand";
+import { TelkomselMark } from "../shared/brand";
 
 export function LoadingShell() {
   return (

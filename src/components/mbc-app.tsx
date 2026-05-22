@@ -1,1 +1,1 @@
-export { MbcApp } from "@/components/mbc/mbc-app-container";
+export { MbcApp } from "@/components/mbc/app/mbc-app-container";

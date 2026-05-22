@@ -2,8 +2,8 @@ import { QrCode, SmartphoneNfc, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import type { AppLocale } from "./types";
-import { uiText } from "./ui-text";
+import type { AppLocale } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function NfcIssueDialog({
   title,

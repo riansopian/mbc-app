@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
-import type { Feedback } from "./types";
+import type { Feedback } from "../logic/types";
 
 export function FeedbackGlyph({ tone }: { tone: Feedback["tone"] }) {
   if (tone === "success") {

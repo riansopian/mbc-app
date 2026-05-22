@@ -11,10 +11,10 @@ import {
 import { formatDateTime } from "@/lib/mbc/format";
 import type { PlainCardData } from "@/lib/mbc/types";
 
-import { InfoTile } from "./info-tile";
-import { ModeNotes } from "./mode-notes";
-import type { MutationRunner } from "./types";
-import { uiText } from "./ui-text";
+import { InfoTile } from "../shared/info-tile";
+import { ModeNotes } from "../shared/mode-notes";
+import type { MutationRunner } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function TerminalPanel({
   busy,

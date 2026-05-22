@@ -14,12 +14,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { PlainCardData } from "@/lib/mbc/types";
 import { cn } from "@/lib/utils";
 
-import { buildModeHref } from "./routing";
-import { roleTitle } from "./roles";
-import { FeedbackGlyph } from "./feedback-glyph";
-import { metricItems, statusBadge } from "./status-metrics";
-import type { AppLocale, Feedback, UserRole } from "./types";
-import { uiText } from "./ui-text";
+import { buildModeHref } from "../logic/routing";
+import { roleTitle } from "../logic/roles";
+import { FeedbackGlyph } from "../shared/feedback-glyph";
+import { metricItems, statusBadge } from "../shared/status-metrics";
+import type { AppLocale, Feedback, UserRole } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function StatusOverview({
   activeRole,

@@ -1,7 +1,7 @@
 import { isWebNfcSupported } from "@/lib/mbc/web-nfc";
 
 import type { AppLocale } from "./types";
-import { uiText } from "./ui-text";
+import { uiText } from "../i18n/ui-text";
 
 export function getNfcStatus(locale: AppLocale) {
   const text = uiText[locale];

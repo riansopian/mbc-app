@@ -9,14 +9,14 @@ import {
   WebNfcCardRepository,
   type WebNfcCardRepositoryEvents,
 } from "@/lib/mbc/web-nfc";
-import { getErrorMessage, translateErrorMessage, translateFeedbackTitle } from "./errors";
-import { getPhysicalNfcIssue } from "./nfc-issues";
-import { getNfcStatus } from "./nfc-status";
-import { DraftCardRepository, createService, readLocalInitialCard } from "./repositories";
-import { buildModeHref, parseNfcMode, parseRoleValue } from "./routing";
-import { roleDescription, roleOptions, roleTitle } from "./roles";
-import type { Feedback, NfcIssueDialogContent, UserRole } from "./types";
-import { uiText } from "./ui-text";
+import { getErrorMessage, translateErrorMessage, translateFeedbackTitle } from "../logic/errors";
+import { getPhysicalNfcIssue } from "../logic/nfc-issues";
+import { getNfcStatus } from "../logic/nfc-status";
+import { DraftCardRepository, createService, readLocalInitialCard } from "../adapters/repositories";
+import { buildModeHref, parseNfcMode, parseRoleValue } from "../logic/routing";
+import { roleDescription, roleOptions, roleTitle } from "../logic/roles";
+import type { Feedback, NfcIssueDialogContent, UserRole } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 export function useMbcController(initialRole?: string | null) {
   const [activeRole, setActiveRole] = useState<UserRole | null>(() =>
     parseRoleValue(initialRole),

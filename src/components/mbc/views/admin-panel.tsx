@@ -17,9 +17,9 @@ import { formatCurrency } from "@/lib/mbc/format";
 import type { MembershipCardService } from "@/lib/mbc/service";
 import type { OperationResult } from "@/lib/mbc/types";
 
-import { parseAmountInput } from "./routing";
-import type { MutationRunner } from "./types";
-import { uiText } from "./ui-text";
+import { parseAmountInput } from "../logic/routing";
+import type { MutationRunner } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 const quickTopUps = [10000, 25000, 50000];
 

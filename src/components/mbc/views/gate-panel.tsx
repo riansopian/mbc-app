@@ -12,9 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
-import { ModeNotes } from "./mode-notes";
-import type { MutationRunner } from "./types";
-import { uiText } from "./ui-text";
+import { ModeNotes } from "../shared/mode-notes";
+import type { MutationRunner } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function GatePanel({
   busy,

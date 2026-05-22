@@ -8,8 +8,8 @@ import { AdminPanel } from "./admin-panel";
 import { GatePanel } from "./gate-panel";
 import { MemberPanel } from "./member-panel";
 import { TerminalPanel } from "./terminal-panel";
-import type { AppLocale, AppMode, MutationRunner } from "./types";
-import { uiText } from "./ui-text";
+import type { AppLocale, AppMode, MutationRunner } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function RoleWorkspace({
   allowedModes,

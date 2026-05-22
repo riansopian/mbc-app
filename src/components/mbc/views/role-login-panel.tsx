@@ -9,9 +9,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { roleDescription, roleOptions, roleTitle } from "./roles";
-import type { AppLocale, UserRole } from "./types";
-import { uiText } from "./ui-text";
+import { roleDescription, roleOptions, roleTitle } from "../logic/roles";
+import type { AppLocale, UserRole } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function RoleLoginPanel({
   locale,

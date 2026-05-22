@@ -3,10 +3,10 @@ import { ChevronRight, LogOut, UserRound } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { TelkomselMark } from "./brand";
-import { LanguageFlag } from "./language-flag";
-import type { AppLocale, UserRole } from "./types";
-import { uiText } from "./ui-text";
+import { TelkomselMark } from "../shared/brand";
+import { LanguageFlag } from "../shared/language-flag";
+import type { AppLocale, UserRole } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function AppHeader({
   activeRole,

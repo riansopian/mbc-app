@@ -2,8 +2,8 @@ import { CheckCircle2, QrCode, SmartphoneNfc } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-import type { AppLocale } from "./types";
-import { uiText } from "./ui-text";
+import type { AppLocale } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function NfcSupportNotice({
   title,

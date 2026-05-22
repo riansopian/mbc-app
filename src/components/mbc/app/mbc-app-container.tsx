@@ -1,12 +1,12 @@
 "use client";
 
-import { AppHeader } from "./app-header";
-import { LoadingShell } from "./loading-shell";
-import { NfcIssueDialog } from "./nfc-issue-dialog";
-import { NfcSupportNotice } from "./nfc-support-notice";
-import { RoleLoginPanel } from "./role-login-panel";
-import { RoleWorkspace } from "./role-workspace";
-import { StatusOverview } from "./status-overview";
+import { AppHeader } from "../views/app-header";
+import { LoadingShell } from "../views/loading-shell";
+import { NfcIssueDialog } from "../views/nfc-issue-dialog";
+import { NfcSupportNotice } from "../views/nfc-support-notice";
+import { RoleLoginPanel } from "../views/role-login-panel";
+import { RoleWorkspace } from "../views/role-workspace";
+import { StatusOverview } from "../views/status-overview";
 import { useMbcController } from "./use-mbc-controller";
 
 export function MbcApp({ initialRole }: { initialRole?: string | null }) {

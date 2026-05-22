@@ -12,10 +12,10 @@ import { formatCurrency, formatDateTime } from "@/lib/mbc/format";
 import type { MembershipCardService } from "@/lib/mbc/service";
 import type { OperationResult, PlainCardData } from "@/lib/mbc/types";
 
-import { InfoTile } from "./info-tile";
-import { TransactionTable } from "./transaction-table";
-import type { AppLocale } from "./types";
-import { uiText } from "./ui-text";
+import { InfoTile } from "../shared/info-tile";
+import { TransactionTable } from "../shared/transaction-table";
+import type { AppLocale } from "../logic/types";
+import { uiText } from "../i18n/ui-text";
 
 export function MemberPanel({
   busy,

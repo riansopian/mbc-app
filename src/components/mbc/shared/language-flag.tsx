@@ -1,4 +1,4 @@
-import type { AppLocale } from "./types";
+import type { AppLocale } from "../logic/types";
 
 export function LanguageFlag({ locale }: { locale: AppLocale }) {
   if (locale === "en") {
