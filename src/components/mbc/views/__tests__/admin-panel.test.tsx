@@ -7,11 +7,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MembershipCardService } from "@/lib/mbc/service";
 import type { OperationResult, PlainCardData } from "@/lib/mbc/types";
 
-import { AdminPanel } from "../admin-panel";
-import { AppHeader } from "../app-header";
-import { NfcIssueDialog } from "../nfc-issue-dialog";
-import { RoleLoginPanel } from "../role-login-panel";
 import { uiText } from "../../i18n/ui-text";
+import { AdminPanel } from "../admin-panel";
 
 const sampleCard: PlainCardData = {
   memberId: "MBC001",
@@ -25,93 +22,13 @@ const sampleCard: PlainCardData = {
   logs: [],
 };
 
-describe("MBC focused components", () => {
+describe("AdminPanel", () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
   });
 
-  it("lets the user choose every PRD role from the login panel", () => {
-    const onLogin = vi.fn();
-
-    render(<RoleLoginPanel locale="en" onLogin={onLogin} />);
-
-    expect(screen.getByText("Choose user role")).toBeInTheDocument();
-    expect(screen.getByText("Cooperative Admin")).toBeInTheDocument();
-    expect(screen.getByText("Entry Gate Officer")).toBeInTheDocument();
-    expect(screen.getByText("Exit Gate Officer")).toBeInTheDocument();
-    expect(screen.getByText("Cooperative Member")).toBeInTheDocument();
-
-    const terminalLink = screen.getByText("Exit Gate Officer").closest("a")!;
-    terminalLink.addEventListener("click", (event) => event.preventDefault());
-    fireEvent.click(terminalLink);
-
-    expect(onLogin).toHaveBeenCalledWith("TERMINAL");
-  });
-
-  it("routes header login, logout, and language actions correctly", () => {
-    const onFocusLogin = vi.fn();
-    const onToggleLocale = vi.fn();
-
-    const { rerender } = render(
-      <AppHeader
-        activeRole={null}
-        locale="id"
-        onFocusLogin={onFocusLogin}
-        onToggleLocale={onToggleLocale}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole("link", { name: /login/i }));
-    expect(onFocusLogin).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByRole("button", { name: "Ganti bahasa ke English US" }));
-    expect(onToggleLocale).toHaveBeenCalledTimes(1);
-
-    rerender(
-      <AppHeader
-        activeRole="ADMIN"
-        locale="en"
-        onFocusLogin={onFocusLogin}
-        onToggleLocale={onToggleLocale}
-      />,
-    );
-
-    const logoutLink = screen.getByRole("link", { name: /logout/i });
-    expect(logoutLink).toHaveAttribute("href", "/");
-    fireEvent.click(logoutLink);
-    expect(onFocusLogin).toHaveBeenCalledTimes(1);
-  });
-
-  it("supports closing the NFC issue dialog and switching to simulation", () => {
-    const onUseSimulation = vi.fn();
-    const onClose = vi.fn();
-    const { container } = render(
-      <NfcIssueDialog
-        title="Browser does not support NFC yet"
-        message="Use Chrome Android."
-        helper="Simulation is still available."
-        locale="en"
-        onUseSimulation={onUseSimulation}
-        onClose={onClose}
-      />,
-    );
-
-    expect(screen.getByRole("dialog")).toHaveAccessibleName(
-      "Browser does not support NFC yet",
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Use simulation" }));
-    expect(onUseSimulation).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getAllByRole("button", { name: "Close" })[1]);
-    expect(onClose).toHaveBeenCalledTimes(1);
-
-    fireEvent.mouseDown(container.firstElementChild!);
-    expect(onClose).toHaveBeenCalledTimes(2);
-  });
-
-  it("submits admin registration, top-up, quick top-up, and reset actions", async () => {
+  it("submits registration, top-up, quick top-up, and reset actions", async () => {
     const registerResult = Promise.resolve({
       card: sampleCard,
       message: "registered",
